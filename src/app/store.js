@@ -1,8 +1,14 @@
-import { configureStore } from '@reduxjs/toolkit';
-import counterReducer from '../features/counter/counterSlice';
+import { configureStore } from "@reduxjs/toolkit";
+import modalReducer from "../reducers/modalSlice";
+import categoryReducer from "../reducers/categorySlice";
 
 export const store = configureStore({
   reducer: {
-    counter: counterReducer,
+    modal: modalReducer,
+    categories: categoryReducer,
   },
+  middleware: (middleware) =>
+    middleware({
+      serializableCheck: false,
+    }),
 });

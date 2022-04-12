@@ -1,0 +1,49 @@
+.block {
+  width: 950px;
+  /* height: 631px; */
+  background-color: white;
+  margin: auto;
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 38px;
+  border-radius: 15px;
+}
+.addBtn {
+  display: flex;
+  justify-content: space-between;
+}
+.addBtn img {
+  cursor: pointer;
+}
+.categoriesList {
+  margin: 2rem 4rem;
+  font-size: 18px;
+}
+.category {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 0.7rem;
+  margin-top: 0.7rem;
+  border-bottom: 2px solid #e5e5e5;
+}
+.btns button {
+  outline: none;
+  /* border: none; */
+  margin: 0px 10px;
+  background-color: #ffffff;
+  padding: 4px 25px;
+  cursor: pointer;
+}
+.edit {
+  border: 1px solid #4285f4;
+  border-radius: 4px;
+  color: #4285f4;
+}
+.disable {
+  border: 1px solid #fe2121;
+  border-radius: 4px;
+  color: #fe2121;
+}
