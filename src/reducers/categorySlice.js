@@ -98,7 +98,13 @@ const categorySlice = createSlice({
       //   state.status = "loading";
       // })
       .addCase(getPreStoredCategories.fulfilled, (state, { payload }) => {
-        state.initials = payload.docs.map((d) => d.data());
+        var tempCategories = []
+        for (var d of payload.docs){
+          var tempItem = d.data()
+          tempItem.id = d.id
+          tempCategories.push(tempItem)
+        }
+        state.initials = tempCategories
         state.status = "idle";
       })
       .addCase(getPreStoredCategories.rejected, (state, action) => {

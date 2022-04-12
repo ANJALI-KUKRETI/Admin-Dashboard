@@ -18,6 +18,7 @@ const Form = ({ category }) => {
   const closeModalHandler = () => {
     dispatch(closeModal());
   };
+  console.log('category',category);
 
   const addCategoryHandler = () => {
     dispatch(addCategory({ categoryName: text, createdAt: serverTimestamp() }));
