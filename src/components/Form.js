@@ -6,24 +6,33 @@ import { addCategory, editCategory } from "../reducers/categorySlice";
 import cross from "../assets/Vector.png";
 import "./Form.css";
 import { serverTimestamp } from "firebase/firestore";
+import { useForm } from "react-hook-form";
 
 const Form = ({ category }) => {
-  const [text, setText] = useState("");
   const val = useSelector((state) => state.modal.value);
-  const error = useSelector((state) => state.categories.error);
-  const [editValue, setEditValue] = useState(val);
+
   const type = useSelector((state) => state.modal.type);
+
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm();
 
   const dispatch = useDispatch();
   const closeModalHandler = () => {
     dispatch(closeModal());
   };
 
-  const addCategoryHandler = () => {
-    dispatch(addCategory({ categoryName: text, createdAt: serverTimestamp() }));
+  const addCategoryHandler = (data) => {
+    dispatch(
+      addCategory({ categoryName: data.category, createdAt: serverTimestamp() })
+    );
     dispatch(closeModal());
   };
-  const editCategoryHandler = () => {
+  const editCategoryHandler = (data) => {
+    console.log(data);
+    const editValue = data.category;
     dispatch(editCategory({ category, editValue }));
     dispatch(closeModal());
   };
@@ -35,32 +44,46 @@ const Form = ({ category }) => {
       </div>
       <div className="container">
         <div className="heading">Add Category</div>
-        <form>
-          <label>Category Name</label>
-          {type === "add" ? (
-            <input
-              type="text"
-              name="name"
-              onChange={(event) => setText(event.target.value)}
-              defaultValue={text}
-            />
-          ) : (
-            <input
-              type="text"
-              name="name"
-              onChange={(event) => setEditValue(event.target.value)}
-              defaultValue={editValue}
-            />
+        <form
+          onSubmit={handleSubmit(
+            type === "add" ? addCategoryHandler : editCategoryHandler
           )}
+        >
+          <div>
+            <label>Category Name</label>
+            {type === "add" ? (
+              <input
+                type="text"
+                {...register("category", {
+                  required: true,
+                  pattern: /^[A-Za-z ]+$/i,
+                })}
+              />
+            ) : (
+              <input
+                type="text"
+                {...register("category", {
+                  required: true,
+                  pattern: /^[A-Za-z ]+$/i,
+                })}
+                defaultValue={val}
+              />
+            )}
+            <div className="errors">
+              {errors.category?.type === "required" && "Category is required!"}
+              {errors.category?.type === "pattern" && "Enter a valid category!"}
+            </div>
+          </div>
         </form>
-        {error}
         <div className="btnsIn">
           <button className="cancel" onClick={closeModalHandler}>
             Cancel
           </button>
           <button
             className="save"
-            onClick={type === "add" ? addCategoryHandler : editCategoryHandler}
+            onClick={handleSubmit(
+              type === "add" ? addCategoryHandler : editCategoryHandler
+            )}
           >
             {type === "add" ? "Save" : "Save Changes"}
           </button>
