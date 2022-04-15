@@ -48,7 +48,11 @@
 .categories,
 .blogs {
   margin: 0px 35px;
+  padding-bottom: 5px;
 }
 .active {
-  border-bottom: 2px solid #3cb9ff;
+  border-bottom: 3px solid #3cb9ff;
+}
+.categories-and-blogs div {
+  cursor: pointer;
 }

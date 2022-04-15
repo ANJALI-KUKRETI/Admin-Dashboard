@@ -1,5 +1,5 @@
 .block {
-  width: 950px;
+  width: 1005px;
   /* height: 631px; */
   background-color: white;
   margin: auto;
@@ -38,12 +38,12 @@
   cursor: pointer;
 }
 .edit {
-  border: 1px solid #4285f4;
+  border: 1.5px solid #4285f4;
   border-radius: 4px;
   color: #4285f4;
 }
 .disable {
-  border: 1px solid #fe2121;
+  border: 1.5px solid #fe2121;
   border-radius: 4px;
   color: #fe2121;
 }
