@@ -14,6 +14,7 @@ const CategoryBlock = ({ getCategory }) => {
     dispatch(getPreStoredCategories());
   }, [dispatch]);
 
+  // console.log(initials);
   const showModalHandler = () => {
     dispatch(showModal());
   };

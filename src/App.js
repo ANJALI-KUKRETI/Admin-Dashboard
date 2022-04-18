@@ -6,16 +6,19 @@ import { Routes, Route, NavLink } from "react-router-dom";
 import CategoryBlock from "./components/CategoryBlock";
 import BlogsBlock from "./components/BlogsBlock";
 import Header from "./components/Header";
+import BlogForm from "./components/BlogForm";
 
 function App() {
   const [category, setCategory] = useState("");
   const modal = useSelector((state) => state.modal.modal);
+  const blogModal = useSelector((state) => state.modal.blogModal);
   const getCategory = (cat) => {
     setCategory(cat);
   };
   return (
     <div className="App">
       {modal && <Form category={category} />}
+      {blogModal && <BlogForm />}
       <Header />
       <div className="main">
         <div className="categories-and-blogs">

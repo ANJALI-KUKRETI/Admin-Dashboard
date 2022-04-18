@@ -6,7 +6,20 @@ import { addCategory, editCategory } from "../reducers/categorySlice";
 import cross from "../assets/Vector.png";
 import "./Form.css";
 import { serverTimestamp } from "firebase/firestore";
+import * as yup from "yup";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
+
+const schema = yup
+  .object()
+  .shape({
+    category: yup
+      .string()
+      .matches(/^[a-zA-Z\s]*$/g, "Enter a valid Category!(must be a string)")
+      .required("This field is required!"),
+  })
+
+  .required();
 
 const Form = ({ category }) => {
   const val = useSelector((state) => state.modal.value);
@@ -17,7 +30,9 @@ const Form = ({ category }) => {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
   const dispatch = useDispatch();
   const closeModalHandler = () => {
@@ -52,42 +67,33 @@ const Form = ({ category }) => {
           <div>
             <label>Category Name</label>
             {type === "add" ? (
-              <input
-                type="text"
-                {...register("category", {
-                  required: true,
-                  pattern: /^[A-Za-z ]+$/i,
-                })}
-              />
+              <input type="text" {...register("category")} />
             ) : (
-              <input
-                type="text"
-                {...register("category", {
-                  required: true,
-                  pattern: /^[A-Za-z ]+$/i,
-                })}
-                defaultValue={val}
-              />
+              <input type="text" {...register("category")} defaultValue={val} />
             )}
-            <div className="errors">
-              {errors.category?.type === "required" && "Category is required!"}
-              {errors.category?.type === "pattern" && "Enter a valid category!"}
-            </div>
+            {errors.category && (
+              <div className="errors">{errors.category.message}</div>
+            )}
+          </div>
+          <div className="btnsIn">
+            <button
+              className="cancel"
+              type="button"
+              onClick={closeModalHandler}
+            >
+              Cancel
+            </button>
+            <button
+              className="save"
+              type="submit"
+              onClick={handleSubmit(
+                type === "add" ? addCategoryHandler : editCategoryHandler
+              )}
+            >
+              {type === "add" ? "Save" : "Save Changes"}
+            </button>
           </div>
         </form>
-        <div className="btnsIn">
-          <button className="cancel" onClick={closeModalHandler}>
-            Cancel
-          </button>
-          <button
-            className="save"
-            onClick={handleSubmit(
-              type === "add" ? addCategoryHandler : editCategoryHandler
-            )}
-          >
-            {type === "add" ? "Save" : "Save Changes"}
-          </button>
-        </div>
       </div>
     </Modal>
   );
