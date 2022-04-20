@@ -22,12 +22,12 @@ const schema = yup
       .string()
       .matches(/^[a-zA-Z\s]*$/g, "Enter a valid Category!(must be a string)")
       .required("This field is required"),
-    titleImage: yup
-      .mixed()
-      // .test("fileSize", "The file size is too large", (value) => {
-      //   return value && value[0].size <= 10000000;
-      // })
-      .required("This field is required"),
+    // titleImage: yup
+    //   .mixed()
+    //   // .test("fileSize", "The file size is too large", (value) => {
+    //   //   return value && value[0].size <= 10000000;
+    //   // })
+    //   .required("This field is required"),
     content: yup.string().min(5).required("This field is required"),
   })
   .required();
@@ -45,7 +45,8 @@ const BlogForm = () => {
     handleSubmit,
     reset,
     getValues,
-    formState: { errors },
+    formState: { errors, },
+    setError
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -55,14 +56,15 @@ const BlogForm = () => {
   };
 
   const setImgName = (e) => {
-    setImg(e.target.files[0]);
-    setImgVal(e.target.files[0].name);
-    // reset({
-    //   ...getValues(),
-    // });
+    // setImg(e.target.files[0]);
+    // setImgVal(e.target.files[0].name);
+    const file = e.target.files[0]
+    const name = e.target.files[0].name
+    const id = uuidv4();
+    uploadFiles({ titleImg: file, id, name });
   };
 
-  const uploadFiles = ({ id, titleImg }) => {
+  const uploadFiles = ({ id, titleImg, name }) => {
     const storageRef = ref(storage, `/files/${id}`);
     const uploadTask = uploadBytesResumable(storageRef, titleImg);
     uploadTask.on(
@@ -76,23 +78,23 @@ const BlogForm = () => {
       (err) => console.log(err),
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          setPhotoURL(url);
-          console.log(photoURL, url);
+          console.log('inside', url);
+          setPhotoURL({url,id, titleImg});
         });
       }
     );
   };
-  console.log(photoURL);
+  console.log('photoURL',photoURL);
   const addBLogHandler = async (data) => {
-    const id = uuidv4();
-    uploadFiles({ titleImg: img, id });
-    // console.log(photoURL);
-    data.titleImage = await photoURL;
-    dispatch(addBlogs({ data, id }));
-    dispatch(closeBlogModal());
+    const target = {...data, titleImage:photoURL.url}
+    if(photoURL && photoURL.url){    
+      setError('titleImage', null)  
+      dispatch(addBlogs({ data:target, id:photoURL.id,  }));
+      dispatch(closeBlogModal());
+    }else{
+      setError('titleImage',{ message: 'Please add title image', type:'ImageNotFoundError'})  
+    }
   };
-
-  console.log(photoURL);
   return (
     <Modal>
       <div className="cross" onClick={closeModalHandler}>
@@ -139,7 +141,7 @@ const BlogForm = () => {
             <input
               type="file"
               id="file"
-              {...register("titleImage")}
+              // {...register("titleImage")}
               onChange={setImgName}
             />
             {errors.titleImage && (

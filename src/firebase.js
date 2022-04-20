@@ -3,12 +3,14 @@ import { collection, getFirestore } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyAa0eg73Q_CY9jqOBthOeoIMls8jr3riUc",
-  authDomain: "admin-dashboard-24260.firebaseapp.com",
-  projectId: "admin-dashboard-24260",
-  storageBucket: "admin-dashboard-24260.appspot.com",
-  messagingSenderId: "354919225821",
-  appId: "1:354919225821:web:6ffcce5b364b142a75be34",
+  apiKey: "AIzaSyDVvT190YHjnYh5LRobXI4cQf8F3_vuGOc",
+  authDomain: "dropoutstore-8979d.firebaseapp.com",
+  databaseURL: "https://dropoutstore-8979d-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "dropoutstore-8979d",
+  storageBucket: "dropoutstore-8979d.appspot.com",
+  messagingSenderId: "300563119027",
+  appId: "1:300563119027:web:fefd76170953e8b14669c6",
+  measurementId: "G-RXD44LFG2Z"
 };
 
 const app = initializeApp(firebaseConfig);
