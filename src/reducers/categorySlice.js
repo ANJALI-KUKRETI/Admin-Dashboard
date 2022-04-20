@@ -35,9 +35,9 @@ export const addCategory = createAsyncThunk(
 );
 export const editCategory = createAsyncThunk(
   "categories/editCategory",
-  async ({ category, editValue }, { rejectWithValue }) => {
+  async ({ val, editValue }, { rejectWithValue }) => {
     try {
-      const docRef = doc(db, "Categories", category.id);
+      const docRef = doc(db, "Categories", val.id);
       updateDoc(docRef, {
         categoryName: editValue,
       });
@@ -46,7 +46,7 @@ export const editCategory = createAsyncThunk(
         orderBy("createdAt", "desc")
       );
       const res = await getDocs(init);
-      return { res, category, editValue };
+      return { res, val, editValue };
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -113,7 +113,7 @@ const categorySlice = createSlice({
       // })
       .addCase(editCategory.fulfilled, (state, { payload }) => {
         const temp = payload.res.docs.map((d) => d.data());
-        const tmp = temp.find((tm) => tm.id === payload.category.id);
+        const tmp = temp.find((tm) => tm.id === payload.val.id);
         tmp.categoryName = payload.editValue;
         state.initials = temp;
         state.categories = temp;

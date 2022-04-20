@@ -1,16 +1,35 @@
-import React from "react";
+import React, { useEffect } from "react";
 import addBlog from "../assets/AddBlog.png";
 import { useDispatch, useSelector } from "react-redux";
 import Filter from "../assets/FIlter.png";
-import DemoBlog from "../assets/DemoBlog.png";
-import { showBlogModal } from "../reducers/modalSlice";
+import { v4 as uuidv4 } from "uuid";
+import { showBlogModal, showEditBlogModal } from "../reducers/modalSlice";
 import "./BlogsBlock.css";
+import { deleteBlog, getPreStoredBlogs } from "../reducers/blogsSlice";
 
 const BlogsBlock = () => {
   const dispatch = useDispatch();
+  const initials = useSelector((state) => state.blogs.initialBlogs);
+  const status = useSelector((state) => state.blogs.status);
   const showModalHandler = () => {
     dispatch(showBlogModal());
   };
+  useEffect(() => {
+    dispatch(getPreStoredBlogs());
+  }, [dispatch]);
+
+  const deleteBlogHandler = (id) => {
+    dispatch(deleteBlog(id));
+  };
+
+  const showEditBlogModalHandler = (initial) => {
+    console.log(initial.id);
+    dispatch(showEditBlogModal(initial));
+  };
+  function truncate(string, n) {
+    return string?.length > n ? string.substr(0, n - 1) + "..." : string;
+  }
+
   return (
     <div className="block">
       <div className="addBlogs">
@@ -28,6 +47,7 @@ const BlogsBlock = () => {
             </div>
           </div>
         </div>
+
         <div className="blogHeaders">
           <div className="blogH">Blog</div>
           <div className="titleH">Title</div>
@@ -36,22 +56,45 @@ const BlogsBlock = () => {
           <div className="authorH">Author</div>
           <div className="actionH">Action</div>
         </div>
+        {initials.length === 0 && status === "idle" && (
+          <div style={{ textAlign: "center" }}>No Blogs Found!</div>
+        )}
+        {status === "loading" && (
+          <div style={{ textAlign: "center" }}>Loading...</div>
+        )}
+
         <div className="blogData">
-          <div className="dataB">
-            <div className="blogImage">
-              <img src={DemoBlog} alt="dem" />
-            </div>
-            <div className="blogTitle">StoreHouse24..</div>
-            <div className="blogTime">19 Mar 2022</div>
-            <div className="blogView">200</div>
-            <div className="blogAuthor">Priyanka</div>
-            <div className="blogAction">
-              <div className="btns">
-                <button className="edit">Edit</button>
-                <button className="disable">Delete</button>
+          {status == "idle" &&
+            initials.map((initial) => (
+              <div className="dataB" key={uuidv4()}>
+                <div className="blogImage">
+                  <img src={initial.titleImage} alt="dem" />
+                </div>
+                <div className="blogTitle">{truncate(initial.title, 15)}</div>
+                <div className="blogTime">{initial.date}</div>
+                <div className="blogView">200</div>
+                <div className="blogAuthor">{initial.author}</div>
+                <div className="blogAction">
+                  <div className="btns">
+                    <button
+                      className="edit"
+                      onClick={() => showEditBlogModalHandler(initial)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="disable"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        deleteBlogHandler(initial.id);
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+            ))}
         </div>
       </div>
     </div>

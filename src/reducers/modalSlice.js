@@ -5,6 +5,7 @@ const initialState = {
   blogModal: false,
   type: "add",
   value: "",
+  blogValue: "",
 };
 
 const modalSlice = createSlice({
@@ -34,7 +35,8 @@ const modalSlice = createSlice({
     },
     showEditBlogModal: (state, { payload }) => {
       // console.log(payload);
-      state.modal = true;
+      state.blogValue = payload;
+      state.blogModal = true;
       state.type = "edit";
     },
   },
@@ -46,5 +48,6 @@ export const {
   showEditModal,
   showBlogModal,
   closeBlogModal,
+  showEditBlogModal,
 } = modalSlice.actions;
 export default modalSlice.reducer;

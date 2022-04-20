@@ -9,15 +9,12 @@ import Header from "./components/Header";
 import BlogForm from "./components/BlogForm";
 
 function App() {
-  const [category, setCategory] = useState("");
   const modal = useSelector((state) => state.modal.modal);
   const blogModal = useSelector((state) => state.modal.blogModal);
-  const getCategory = (cat) => {
-    setCategory(cat);
-  };
+
   return (
     <div className="App">
-      {modal && <Form category={category} />}
+      {modal && <Form />}
       {blogModal && <BlogForm />}
       <Header />
       <div className="main">
@@ -41,10 +38,7 @@ function App() {
           </div>
         </div>
         <Routes>
-          <Route
-            path="/"
-            element={<CategoryBlock getCategory={getCategory} />}
-          />
+          <Route path="/" element={<CategoryBlock />} />
           <Route path="blogs" element={<BlogsBlock />} />
         </Routes>
       </div>

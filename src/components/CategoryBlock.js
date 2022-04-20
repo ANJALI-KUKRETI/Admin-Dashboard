@@ -6,7 +6,7 @@ import "./CategoryBlock.css";
 import { getPreStoredCategories } from "../reducers/categorySlice";
 import addButton from "../assets/Frame 268.png";
 
-const CategoryBlock = ({ getCategory }) => {
+const CategoryBlock = () => {
   const initials = useSelector((state) => state.categories.initials);
   const status = useSelector((state) => state.categories.status);
   const dispatch = useDispatch();
@@ -19,8 +19,8 @@ const CategoryBlock = ({ getCategory }) => {
     dispatch(showModal());
   };
   const showEditModalHandler = (initial) => {
-    dispatch(showEditModal(initial.categoryName));
-    getCategory(initial);
+    // console.log(initial);
+    dispatch(showEditModal(initial));
   };
   return (
     <div className="block">

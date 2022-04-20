@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { closeBlogModal } from "../reducers/modalSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { addBlogs } from "../reducers/blogsSlice";
+import { addBlogs, editBlog } from "../reducers/blogsSlice";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -9,6 +9,7 @@ import * as yup from "yup";
 import cross from "../assets/Vector.png";
 import Modal from "./Modal";
 import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import { serverTimestamp } from "firebase/firestore";
 import { storage } from "../firebase";
 
 import "./BlogForm.css";
@@ -22,12 +23,6 @@ const schema = yup
       .string()
       .matches(/^[a-zA-Z\s]*$/g, "Enter a valid Category!(must be a string)")
       .required("This field is required"),
-    titleImage: yup
-      .mixed()
-      // .test("fileSize", "The file size is too large", (value) => {
-      //   return value && value[0].size <= 10000000;
-      // })
-      .required("This field is required"),
     content: yup.string().min(5).required("This field is required"),
   })
   .required();
@@ -37,15 +32,17 @@ const BlogForm = () => {
   const [photoURL, setPhotoURL] = useState(null);
   const [imgVal, setImgVal] = useState("");
   const [img, setImg] = useState("");
-  const type = useSelector((state) => state.modal.type);
+
   const categories = useSelector((state) => state.categories.initials);
+
+  const val = useSelector((state) => state.modal.blogValue);
+  const type = useSelector((state) => state.modal.type);
 
   const {
     register,
     handleSubmit,
-    reset,
-    getValues,
     formState: { errors },
+    setError,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -57,9 +54,8 @@ const BlogForm = () => {
   const setImgName = (e) => {
     setImg(e.target.files[0]);
     setImgVal(e.target.files[0].name);
-    // reset({
-    //   ...getValues(),
-    // });
+    const id = uuidv4();
+    uploadFiles({ titleImg: e.target.files[0], id });
   };
 
   const uploadFiles = ({ id, titleImg }) => {
@@ -74,25 +70,49 @@ const BlogForm = () => {
         console.log(prog);
       },
       (err) => console.log(err),
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((url) => {
-          setPhotoURL(url);
-          console.log(photoURL, url);
-        });
+      async () => {
+        const url = await getDownloadURL(uploadTask.snapshot.ref);
+        setPhotoURL({ url, id });
+        // console.log(photoURL, url);
       }
     );
   };
-  console.log(photoURL);
+
   const addBLogHandler = async (data) => {
-    const id = uuidv4();
-    uploadFiles({ titleImg: img, id });
-    // console.log(photoURL);
-    data.titleImage = await photoURL;
-    dispatch(addBlogs({ data, id }));
+    let date = new Date();
+    let day = date.getDate();
+    let month = date.getMonth() + 1;
+    let year = date.getFullYear();
+
+    let fullDate = `${day}/${month}/${year}`;
+    const target = { ...data, titleImage: photoURL.url, date: fullDate };
+    console.log(fullDate);
+    if (photoURL) {
+      setError("titleImage", null);
+      dispatch(
+        addBlogs({
+          data: target,
+          id: photoURL.id,
+          createdAt: serverTimestamp(),
+        })
+      );
+      dispatch(closeBlogModal());
+    } else {
+      setError("titleImage", {
+        message: "Please add title image",
+        type: "ImageNotFoundError",
+      });
+    }
+  };
+
+  const editBlogHandler = (data) => {
+    console.log(photoURL);
+    const target = { ...data, titleImage: photoURL.url, id: val.id };
+    // const editValue = data.category;
+    dispatch(editBlog(target));
     dispatch(closeBlogModal());
   };
 
-  console.log(photoURL);
   return (
     <Modal>
       <div className="cross" onClick={closeModalHandler}>
@@ -103,7 +123,16 @@ const BlogForm = () => {
         <form onSubmit={handleSubmit(addBLogHandler)}>
           <div className="field">
             <label>Title</label>
-            <input type="text" {...register("title")} />
+            {/* <input type="text" {...register("title")} /> */}
+            {type === "add" ? (
+              <input type="text" {...register("title")} />
+            ) : (
+              <input
+                type="text"
+                {...register("title")}
+                defaultValue={val.title}
+              />
+            )}
             {errors.title && (
               <div className="errorsB">{errors.title.message}</div>
             )}
@@ -123,7 +152,16 @@ const BlogForm = () => {
           </div>
           <div className="field">
             <label>Author</label>
-            <input type="text" {...register("author")} />
+            {/* <input type="text" {...register("author")} /> */}
+            {type === "add" ? (
+              <input type="text" {...register("author")} />
+            ) : (
+              <input
+                type="text"
+                {...register("author")}
+                defaultValue={val.author}
+              />
+            )}
             {errors.author && (
               <div className="errorsB">{errors.author.message}</div>
             )}
@@ -139,7 +177,7 @@ const BlogForm = () => {
             <input
               type="file"
               id="file"
-              {...register("titleImage")}
+              // {...register("titleImage")}
               onChange={setImgName}
             />
             {errors.titleImage && (
@@ -148,7 +186,17 @@ const BlogForm = () => {
           </div>
           <div className="field">
             <label>Blog Content</label>
-            <textarea type="text" {...register("content")} />
+            {/* <textarea type="text" {...register("content")} /> */}
+            {type === "add" ? (
+              <textarea type="text" {...register("content")} />
+            ) : (
+              <textarea
+                type="text"
+                {...register("content")}
+                defaultValue={val.content}
+              />
+            )}
+
             {errors.content && (
               <div className="errorsB errorsText">{errors.content.message}</div>
             )}
@@ -164,10 +212,19 @@ const BlogForm = () => {
             <button className="cancel" type="button">
               Preview
             </button>
-            <button
+            {/* <button
               className="save"
               type="submit"
               onClick={handleSubmit(addBLogHandler)}
+            >
+              {type === "add" ? "Save" : "Save Changes"}
+            </button> */}
+            <button
+              className="save"
+              type="submit"
+              onClick={handleSubmit(
+                type === "add" ? addBLogHandler : editBlogHandler
+              )}
             >
               {type === "add" ? "Save" : "Save Changes"}
             </button>

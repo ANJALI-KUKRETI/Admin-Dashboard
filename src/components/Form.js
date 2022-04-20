@@ -21,7 +21,7 @@ const schema = yup
 
   .required();
 
-const Form = ({ category }) => {
+const Form = () => {
   const val = useSelector((state) => state.modal.value);
 
   const type = useSelector((state) => state.modal.type);
@@ -46,9 +46,9 @@ const Form = ({ category }) => {
     dispatch(closeModal());
   };
   const editCategoryHandler = (data) => {
-    console.log(data);
+    // console.log(data);
     const editValue = data.category;
-    dispatch(editCategory({ category, editValue }));
+    dispatch(editCategory({ val, editValue }));
     dispatch(closeModal());
   };
 
@@ -69,7 +69,11 @@ const Form = ({ category }) => {
             {type === "add" ? (
               <input type="text" {...register("category")} />
             ) : (
-              <input type="text" {...register("category")} defaultValue={val} />
+              <input
+                type="text"
+                {...register("category")}
+                defaultValue={val.categoryName}
+              />
             )}
             {errors.category && (
               <div className="errors">{errors.category.message}</div>
