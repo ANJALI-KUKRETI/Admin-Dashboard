@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { closeBlogModal } from "../reducers/modalSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { addBlogs, editBlog } from "../reducers/blogsSlice";
@@ -43,6 +43,7 @@ const BlogForm = () => {
     handleSubmit,
     formState: { errors },
     setError,
+    setValue,
   } = useForm({
     resolver: yupResolver(schema),
   });
@@ -72,6 +73,7 @@ const BlogForm = () => {
       (err) => console.log(err),
       async () => {
         const url = await getDownloadURL(uploadTask.snapshot.ref);
+        setImg(url)
         setPhotoURL({ url, id });
         // console.log(photoURL, url);
       }
@@ -104,7 +106,19 @@ const BlogForm = () => {
       });
     }
   };
-
+  useEffect(() => {
+    if(type==='edit'){
+      for (var key of Object.keys(val)){
+        setValue(key,val[key])
+      }
+      setImg(val['titleImage'])
+    }
+  
+    return () => {
+      
+    }
+  }, [type])
+  
   const editBlogHandler = (data) => {
     console.log(photoURL);
     const target = { ...data, titleImage: photoURL.url, id: val.id };
@@ -124,7 +138,8 @@ const BlogForm = () => {
           <div className="field">
             <label>Title</label>
             {/* <input type="text" {...register("title")} /> */}
-            {type === "add" ? (
+            <input type="text" {...register("title")} />
+            {/* {type === "add" ? (
               <input type="text" {...register("title")} />
             ) : (
               <input
@@ -132,7 +147,7 @@ const BlogForm = () => {
                 {...register("title")}
                 defaultValue={val.title}
               />
-            )}
+            )} */}
             {errors.title && (
               <div className="errorsB">{errors.title.message}</div>
             )}
@@ -168,18 +183,36 @@ const BlogForm = () => {
           </div>
           <div className="field">
             <div>Title Image</div>
-            <div className="plus">
-              <label htmlFor="file" className="plusF" name="titleImage">
-                +
-              </label>
-              <div className="imgName">{imgVal}</div>
-            </div>
-            <input
-              type="file"
-              id="file"
-              // {...register("titleImage")}
-              onChange={setImgName}
-            />
+            {(!!img)?
+              <div
+              style={{width:500, position:'relative'}}
+              >
+                <div
+                style={{position:'absolute',right:10, top:10}}
+                onClick={()=>setImg('')}
+                >
+                  <button>
+                    X
+                  </button>
+                </div>
+                <img src={img} style={{width:'100%'}}  alt="" />
+              </div>
+              :
+              <>
+                <div className="plus">
+                <label htmlFor="file" className="plusF" name="titleImage">
+                  +
+                </label>
+                <div className="imgName">{imgVal}</div>
+                </div>
+                <input
+                type="file"
+                id="file"
+                // {...register("titleImage")}
+                onChange={setImgName}
+                />
+              </>
+            }
             {errors.titleImage && (
               <div className="errorsB">{errors.titleImage.message}</div>
             )}
