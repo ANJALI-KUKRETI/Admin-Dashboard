@@ -8,7 +8,12 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import cross from "../assets/Vector.png";
 import Modal from "./Modal";
-import { getDownloadURL, ref, uploadBytesResumable } from "firebase/storage";
+import {
+  deleteObject,
+  getDownloadURL,
+  ref,
+  uploadBytesResumable,
+} from "firebase/storage";
 import { serverTimestamp } from "firebase/firestore";
 import { storage } from "../firebase";
 
@@ -31,7 +36,7 @@ const BlogForm = () => {
   const dispatch = useDispatch();
   const [photoURL, setPhotoURL] = useState(null);
   const [imgVal, setImgVal] = useState("");
-  const [img, setImg] = useState("");
+  const [prog, setProg] = useState("");
 
   const categories = useSelector((state) => state.categories.initials);
 
@@ -53,10 +58,12 @@ const BlogForm = () => {
   };
 
   const setImgName = (e) => {
-    setImg(e.target.files[0]);
-    setImgVal(e.target.files[0].name);
     const id = uuidv4();
-    uploadFiles({ titleImg: e.target.files[0], id });
+    if (
+      type === "add"
+        ? uploadFiles({ titleImg: e.target.files[0], id })
+        : uploadFiles({ titleImg: e.target.files[0], id: val.id })
+    );
   };
 
   const uploadFiles = ({ id, titleImg }) => {
@@ -69,17 +76,25 @@ const BlogForm = () => {
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
         console.log(prog);
+        setProg(prog);
       },
       (err) => console.log(err),
       async () => {
         const url = await getDownloadURL(uploadTask.snapshot.ref);
-        setImg(url)
+        setImgVal(url);
         setPhotoURL({ url, id });
-        // console.log(photoURL, url);
       }
     );
   };
 
+  const deleteFromStorage = () => {
+    const storageRef = ref(storage, `/files/${val.id}`);
+    deleteObject(storageRef)
+      .then(() => {
+        console.log("deleted");
+      })
+      .catch((error) => console.log("error occured"));
+  };
   const addBLogHandler = async (data) => {
     let date = new Date();
     let day = date.getDate();
@@ -107,22 +122,22 @@ const BlogForm = () => {
     }
   };
   useEffect(() => {
-    if(type==='edit'){
-      for (var key of Object.keys(val)){
-        setValue(key,val[key])
+    if (type === "edit") {
+      for (var key of Object.keys(val)) {
+        setValue(key, val[key]);
       }
-      setImg(val['titleImage'])
+
+      setImgVal(val["titleImage"]);
+      console.log(val["titleImage"]);
+      setPhotoURL({ url: val["titleImage"], id: val["id"] });
     }
-  
-    return () => {
-      
-    }
-  }, [type])
-  
+
+    return () => {};
+  }, [type]);
+
+  console.log(val);
   const editBlogHandler = (data) => {
-    console.log(photoURL);
     const target = { ...data, titleImage: photoURL.url, id: val.id };
-    // const editValue = data.category;
     dispatch(editBlog(target));
     dispatch(closeBlogModal());
   };
@@ -137,17 +152,7 @@ const BlogForm = () => {
         <form onSubmit={handleSubmit(addBLogHandler)}>
           <div className="field">
             <label>Title</label>
-            {/* <input type="text" {...register("title")} /> */}
             <input type="text" {...register("title")} />
-            {/* {type === "add" ? (
-              <input type="text" {...register("title")} />
-            ) : (
-              <input
-                type="text"
-                {...register("title")}
-                defaultValue={val.title}
-              />
-            )} */}
             {errors.title && (
               <div className="errorsB">{errors.title.message}</div>
             )}
@@ -167,68 +172,58 @@ const BlogForm = () => {
           </div>
           <div className="field">
             <label>Author</label>
-            {/* <input type="text" {...register("author")} /> */}
-            {type === "add" ? (
-              <input type="text" {...register("author")} />
-            ) : (
-              <input
-                type="text"
-                {...register("author")}
-                defaultValue={val.author}
-              />
-            )}
+            <input type="text" {...register("author")} />
             {errors.author && (
               <div className="errorsB">{errors.author.message}</div>
             )}
           </div>
           <div className="field">
             <div>Title Image</div>
-            {(!!img)?
+            {imgVal ? (
               <div
-              style={{width:500, position:'relative'}}
+                style={{
+                  width: "510px",
+                  height: "220px",
+                  position: "relative",
+                }}
               >
                 <div
-                style={{position:'absolute',right:10, top:10}}
-                onClick={()=>setImg('')}
+                  style={{ position: "absolute", right: 10, top: 10 }}
+                  onClick={() => {
+                    setImgVal("");
+                    setProg("");
+                    deleteFromStorage();
+                  }}
                 >
-                  <button>
-                    X
-                  </button>
+                  <button>X</button>
                 </div>
-                <img src={img} style={{width:'100%'}}  alt="" />
+                <img
+                  src={imgVal}
+                  style={{ width: "100%", height: "220px" }}
+                  alt=""
+                />
               </div>
-              :
+            ) : (
               <>
                 <div className="plus">
-                <label htmlFor="file" className="plusF" name="titleImage">
-                  +
-                </label>
-                <div className="imgName">{imgVal}</div>
+                  <label htmlFor="file" className="plusF" name="titleImage">
+                    +
+                  </label>
+                  <div className="progress">
+                    {prog > 0 && prog < 100 && `Uploading ${prog}%`}
+                    {prog === 100 && `Uploaded!`}
+                  </div>
                 </div>
-                <input
-                type="file"
-                id="file"
-                // {...register("titleImage")}
-                onChange={setImgName}
-                />
+                <input type="file" id="file" onChange={setImgName} />
               </>
-            }
+            )}
             {errors.titleImage && (
               <div className="errorsB">{errors.titleImage.message}</div>
             )}
           </div>
           <div className="field">
             <label>Blog Content</label>
-            {/* <textarea type="text" {...register("content")} /> */}
-            {type === "add" ? (
-              <textarea type="text" {...register("content")} />
-            ) : (
-              <textarea
-                type="text"
-                {...register("content")}
-                defaultValue={val.content}
-              />
-            )}
+            <textarea type="text" {...register("content")} />
 
             {errors.content && (
               <div className="errorsB errorsText">{errors.content.message}</div>
@@ -245,13 +240,6 @@ const BlogForm = () => {
             <button className="cancel" type="button">
               Preview
             </button>
-            {/* <button
-              className="save"
-              type="submit"
-              onClick={handleSubmit(addBLogHandler)}
-            >
-              {type === "add" ? "Save" : "Save Changes"}
-            </button> */}
             <button
               className="save"
               type="submit"
