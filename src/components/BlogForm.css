@@ -16,6 +16,13 @@
   color: red;
   font-size: 0.85rem;
 }
+.errorsC {
+  position: absolute;
+  left: 133px;
+  top: 155px;
+  color: red;
+  font-size: 0.85rem;
+}
 .errorsText {
   top: 20.3rem;
 }

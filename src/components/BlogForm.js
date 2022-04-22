@@ -69,6 +69,7 @@ const BlogForm = () => {
   const uploadFiles = ({ id, titleImg }) => {
     const storageRef = ref(storage, `/files/${id}`);
     const uploadTask = uploadBytesResumable(storageRef, titleImg);
+    setError("titleImage", null);
     uploadTask.on(
       "state_changed",
       (snapshot) => {
@@ -86,23 +87,34 @@ const BlogForm = () => {
     );
   };
 
-  const deleteFromStorage = () => {
+  const deleteFromStorage = (id) => {
+    console.log(id);
     const storageRef = ref(storage, `/files/${val.id}`);
-    deleteObject(storageRef)
-      .then(() => {
-        console.log("deleted");
-      })
-      .catch((error) => console.log("error occured"));
+    const sRef = ref(storage, `/files/${id}`);
+    if (type === "edit") {
+      deleteObject(storageRef)
+        .then(() => {
+          console.log("deleted");
+        })
+        .catch((error) => console.log("error occured"));
+    } else {
+      deleteObject(sRef)
+        .then(() => {
+          console.log("deleted");
+        })
+        .catch((error) => console.log("error occured"));
+    }
   };
   const addBLogHandler = async (data) => {
+    console.log(data);
     let date = new Date();
     let day = date.getDate();
     let month = date.getMonth() + 1;
     let year = date.getFullYear();
 
     let fullDate = `${day}/${month}/${year}`;
-    const target = { ...data, titleImage: photoURL.url, date: fullDate };
     if (photoURL) {
+      const target = { ...data, titleImage: photoURL.url, date: fullDate };
       setError("titleImage", null);
       dispatch(
         addBlogs({
@@ -132,10 +144,18 @@ const BlogForm = () => {
     return () => {};
   }, [type]);
 
+  // console.log(photoURL);
   const editBlogHandler = (data) => {
-    const target = { ...data, titleImage: photoURL.url, id: val.id };
-    dispatch(editBlog(target));
-    dispatch(closeBlogModal());
+    if (photoURL) {
+      const target = { ...data, titleImage: photoURL.url, id: val.id };
+      dispatch(editBlog(target));
+      dispatch(closeBlogModal());
+    } else {
+      setError("titleImage", {
+        message: "Please add title image",
+        type: "ImageNotFoundError",
+      });
+    }
   };
 
   return (
@@ -157,7 +177,7 @@ const BlogForm = () => {
             <label>Category</label>
             <select {...register("category")}>
               {categories.map((cat) => (
-                <option key={uuidv4()} value={cat.categoryName}>
+                <option key={cat.categoryName} value={cat.categoryName}>
                   {cat.categoryName}
                 </option>
               ))}
@@ -175,7 +195,7 @@ const BlogForm = () => {
           </div>
           <div className="field">
             <div>Title Image</div>
-            {imgVal ? (
+            {!!imgVal ? (
               <div
                 style={{
                   width: "510px",
@@ -192,7 +212,8 @@ const BlogForm = () => {
                   onClick={() => {
                     setImgVal("");
                     setProg("");
-                    deleteFromStorage();
+                    deleteFromStorage(photoURL.id);
+                    setPhotoURL(null);
                   }}
                 >
                   <button style={{ cursor: "pointer", fontWeight: "bold" }}>
@@ -220,7 +241,7 @@ const BlogForm = () => {
               </>
             )}
             {errors.titleImage && (
-              <div className="errorsB">{errors.titleImage.message}</div>
+              <div className="errorsC">{errors.titleImage.message}</div>
             )}
           </div>
           <div className="field">
