@@ -7,15 +7,18 @@ import CategoryBlock from "./components/CategoryBlock";
 import BlogsBlock from "./components/BlogsBlock";
 import Header from "./components/Header";
 import BlogForm from "./components/BlogForm";
+import FilterModal from "./components/FilterModal";
 
 function App() {
   const modal = useSelector((state) => state.modal.modal);
   const blogModal = useSelector((state) => state.modal.blogModal);
+  const filterModal = useSelector((state) => state.modal.filterModal);
 
   return (
     <div className="App">
       {modal && <Form />}
       {blogModal && <BlogForm />}
+      {filterModal && <FilterModal />}
       <Header />
       <div className="main">
         <div className="categories-and-blogs">

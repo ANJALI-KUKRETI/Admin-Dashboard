@@ -1,0 +1,21 @@
+.cont {
+  height: 480px;
+  overflow-y: scroll;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+.label {
+  font-size: 1.4rem;
+  margin-left: 2.5rem;
+}
+input.check {
+  height: 1rem;
+  width: 1rem;
+}
+.checkbox {
+  margin-top: 1rem;
+}
+.outerCheck {
+  margin-top: 2rem;
+}

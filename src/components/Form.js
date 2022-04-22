@@ -58,7 +58,7 @@ const Form = () => {
       </div>
       <div className="container">
         <div className="heading">Add Category</div>
-        <form
+        <form className="form"
           onSubmit={handleSubmit(
             type === "add" ? addCategoryHandler : editCategoryHandler
           )}

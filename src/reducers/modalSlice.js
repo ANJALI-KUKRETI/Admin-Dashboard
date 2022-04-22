@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initialState = {
   modal: false,
   blogModal: false,
+  filterModal: false,
   type: "add",
   value: "",
   blogValue: "",
@@ -21,20 +22,24 @@ const modalSlice = createSlice({
       state.blogModal = true;
       state.type = "add";
     },
+    showFilterModal: (state) => {
+      state.filterModal = true;
+    },
     closeModal: (state) => {
       state.modal = false;
     },
     closeBlogModal: (state) => {
       state.blogModal = false;
     },
+    closeFilterModal: (state) => {
+      state.filterModal = false;
+    },
     showEditModal: (state, { payload }) => {
-      // console.log(payload);
       state.modal = true;
       state.value = payload;
       state.type = "edit";
     },
     showEditBlogModal: (state, { payload }) => {
-      // console.log(payload);
       state.blogValue = payload;
       state.blogModal = true;
       state.type = "edit";
@@ -49,5 +54,7 @@ export const {
   showBlogModal,
   closeBlogModal,
   showEditBlogModal,
+  showFilterModal,
+  closeFilterModal,
 } = modalSlice.actions;
 export default modalSlice.reducer;

@@ -3,7 +3,11 @@ import addBlog from "../assets/AddBlog.png";
 import { useDispatch, useSelector } from "react-redux";
 import Filter from "../assets/FIlter.png";
 import { v4 as uuidv4 } from "uuid";
-import { showBlogModal, showEditBlogModal } from "../reducers/modalSlice";
+import {
+  showBlogModal,
+  showEditBlogModal,
+  showFilterModal,
+} from "../reducers/modalSlice";
 import "./BlogsBlock.css";
 import { deleteBlog, getPreStoredBlogs } from "../reducers/blogsSlice";
 
@@ -14,6 +18,9 @@ const BlogsBlock = () => {
   const error = useSelector((state) => state.categories.error);
   const showModalHandler = () => {
     dispatch(showBlogModal());
+  };
+  const showFilterModalHandler = () => {
+    dispatch(showFilterModal());
   };
   useEffect(() => {
     dispatch(getPreStoredBlogs());
@@ -26,6 +33,7 @@ const BlogsBlock = () => {
   const showEditBlogModalHandler = (initial) => {
     dispatch(showEditBlogModal(initial));
   };
+
   function truncate(string, n) {
     return string?.length > n ? string.substr(0, n - 1) + "..." : string;
   }
@@ -36,8 +44,8 @@ const BlogsBlock = () => {
         <div className="btnsB">
           <div></div>
           <div className="btnsOnRight">
-            <div className="filterBtn">
-              <div> Filters..</div>{" "}
+            <div className="filterBtn" onClick={showFilterModalHandler}>
+              <div> Filters..</div>
               <div>
                 <img src={Filter} alt="fil" />
               </div>
@@ -67,7 +75,7 @@ const BlogsBlock = () => {
         )}
 
         <div className="blogData">
-          {status == "idle" &&
+          {status === "idle" &&
             initials.map((initial) => (
               <div className="dataB" key={uuidv4()}>
                 <div className="blogImage">

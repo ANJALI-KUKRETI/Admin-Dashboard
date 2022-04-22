@@ -165,7 +165,7 @@ const BlogForm = () => {
       </div>
       <div className="container">
         <div className="heading">Create New Form</div>
-        <form onSubmit={handleSubmit(addBLogHandler)}>
+        <form className="form" onSubmit={handleSubmit(addBLogHandler)}>
           <div className="field">
             <label>Title</label>
             <input type="text" {...register("title")} />
