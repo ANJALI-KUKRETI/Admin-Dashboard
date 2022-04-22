@@ -46,7 +46,6 @@ const Form = () => {
     dispatch(closeModal());
   };
   const editCategoryHandler = (data) => {
-    // console.log(data);
     const editValue = data.category;
     dispatch(editCategory({ val, editValue }));
     dispatch(closeModal());

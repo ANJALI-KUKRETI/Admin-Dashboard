@@ -9,17 +9,16 @@ import addButton from "../assets/Frame 268.png";
 const CategoryBlock = () => {
   const initials = useSelector((state) => state.categories.initials);
   const status = useSelector((state) => state.categories.status);
+  const error = useSelector((state) => state.categories.error);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getPreStoredCategories());
   }, [dispatch]);
 
-  // console.log(initials);
   const showModalHandler = () => {
     dispatch(showModal());
   };
   const showEditModalHandler = (initial) => {
-    // console.log(initial);
     dispatch(showEditModal(initial));
   };
   return (
@@ -32,6 +31,9 @@ const CategoryBlock = () => {
         <div className="categoriesList">
           {initials.length === 0 && status === "idle" && (
             <div style={{ textAlign: "center" }}>No Categories Found!</div>
+          )}
+          {status === "idle" && error && (
+            <div style={{ textAlign: "center", color: "red" }}>{error}</div>
           )}
           {status === "loading" && (
             <div style={{ textAlign: "center" }}>Loading...</div>

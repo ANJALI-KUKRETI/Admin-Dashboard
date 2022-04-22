@@ -11,6 +11,7 @@ const BlogsBlock = () => {
   const dispatch = useDispatch();
   const initials = useSelector((state) => state.blogs.initialBlogs);
   const status = useSelector((state) => state.blogs.status);
+  const error = useSelector((state) => state.categories.error);
   const showModalHandler = () => {
     dispatch(showBlogModal());
   };
@@ -23,7 +24,6 @@ const BlogsBlock = () => {
   };
 
   const showEditBlogModalHandler = (initial) => {
-    console.log(initial.id);
     dispatch(showEditBlogModal(initial));
   };
   function truncate(string, n) {
@@ -58,6 +58,9 @@ const BlogsBlock = () => {
         </div>
         {initials.length === 0 && status === "idle" && (
           <div style={{ textAlign: "center" }}>No Blogs Found!</div>
+        )}
+        {status === "idle" && error && (
+          <div style={{ textAlign: "center", color: "red" }}>{error}</div>
         )}
         {status === "loading" && (
           <div style={{ textAlign: "center" }}>Loading...</div>

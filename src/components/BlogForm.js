@@ -75,7 +75,6 @@ const BlogForm = () => {
         const prog = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
-        console.log(prog);
         setProg(prog);
       },
       (err) => console.log(err),
@@ -103,7 +102,6 @@ const BlogForm = () => {
 
     let fullDate = `${day}/${month}/${year}`;
     const target = { ...data, titleImage: photoURL.url, date: fullDate };
-    console.log(fullDate);
     if (photoURL) {
       setError("titleImage", null);
       dispatch(
@@ -128,14 +126,12 @@ const BlogForm = () => {
       }
 
       setImgVal(val["titleImage"]);
-      console.log(val["titleImage"]);
       setPhotoURL({ url: val["titleImage"], id: val["id"] });
     }
 
     return () => {};
   }, [type]);
 
-  console.log(val);
   const editBlogHandler = (data) => {
     const target = { ...data, titleImage: photoURL.url, id: val.id };
     dispatch(editBlog(target));
@@ -188,14 +184,20 @@ const BlogForm = () => {
                 }}
               >
                 <div
-                  style={{ position: "absolute", right: 10, top: 10 }}
+                  style={{
+                    position: "absolute",
+                    right: 10,
+                    top: 10,
+                  }}
                   onClick={() => {
                     setImgVal("");
                     setProg("");
                     deleteFromStorage();
                   }}
                 >
-                  <button>X</button>
+                  <button style={{ cursor: "pointer", fontWeight: "bold" }}>
+                    X
+                  </button>
                 </div>
                 <img
                   src={imgVal}

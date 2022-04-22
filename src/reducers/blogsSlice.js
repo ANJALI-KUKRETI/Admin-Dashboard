@@ -106,7 +106,6 @@ const blogsSlice = createSlice({
         if (isRejectedWithValue(action)) {
           state.status = "idle";
           state.error = action.payload;
-          // console.log(state.error);
         }
       })
       .addCase(deleteBlog.fulfilled, (state, { payload }) => {
@@ -116,19 +115,29 @@ const blogsSlice = createSlice({
         state.status = "idle";
         state.err = null;
       })
+      .addCase(deleteBlog.rejected, (state, action) => {
+        if (isRejectedWithValue(action)) {
+          state.status = "idle";
+          state.error = action.payload;
+        }
+      })
       .addCase(editBlog.fulfilled, (state, { payload }) => {
         const temp = payload.res.docs.map((d) => d.data());
         const tmp = temp.find((tm) => tm.id === payload.data.id);
-        // tmp.categoryName = payload.editValue;
         tmp.title = payload.data.title;
         tmp.category = payload.data.category;
         tmp.author = payload.data.author;
         tmp.content = payload.data.content;
         tmp.titleImage = payload.data.titleImage;
-        // console.log(temp);
         state.initialBlogs = temp;
         state.blogs = temp;
         state.status = "idle";
+      })
+      .addCase(editBlog.rejected, (state, action) => {
+        if (isRejectedWithValue(action)) {
+          state.status = "idle";
+          state.error = action.payload;
+        }
       });
   },
 });
