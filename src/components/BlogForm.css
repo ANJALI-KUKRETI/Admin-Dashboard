@@ -23,6 +23,11 @@
   color: red;
   font-size: 0.85rem;
 }
+.errorsD {
+  margin-top: 2rem;
+  color: red;
+  font-size: 1rem;
+}
 .errorsText {
   top: 20.3rem;
 }

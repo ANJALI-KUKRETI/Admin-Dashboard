@@ -3,7 +3,7 @@ import {
   createSlice,
   isRejectedWithValue,
 } from "@reduxjs/toolkit";
-import { db, storage } from "../firebase";
+import { db } from "../firebase";
 
 import {
   doc,
@@ -15,7 +15,6 @@ import {
   orderBy,
   query,
 } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
 
 export const addBlogs = createAsyncThunk(
   "blogs/addBlogs",
@@ -32,7 +31,6 @@ export const addBlogs = createAsyncThunk(
         date: data.date,
       };
       await setDoc(doc(db, `Blogs/${id}`), Blog);
-      console.log(Blog);
       return Blog;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -73,7 +71,23 @@ export const editBlog = createAsyncThunk(
       });
       const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"));
       const res = await getDocs(init);
+      console.log(res);
       return { res, data };
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const filterBlog = createAsyncThunk(
+  "blogs/filterBlog",
+  async (filters, { rejectWithValue }) => {
+    try {
+      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"));
+      const preBlogs = await getDocs(init);
+      const temp = preBlogs.docs.map((d) => d.data());
+      const t = temp.filter((ini) => filters.includes(ini.category));
+      return t;
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -138,6 +152,9 @@ const blogsSlice = createSlice({
           state.status = "idle";
           state.error = action.payload;
         }
+      })
+      .addCase(filterBlog.fulfilled, (state, { payload }) => {
+        state.initialBlogs = payload;
       });
   },
 });
