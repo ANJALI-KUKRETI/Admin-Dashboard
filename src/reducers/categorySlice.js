@@ -47,7 +47,8 @@ export const editCategory = createAsyncThunk(
       });
       const init = query(
         collection(db, "Categories"),
-        orderBy("createdAt", "desc")
+        orderBy("createdAt", "desc"),
+        limit(10)
       );
       const res = await getDocs(init);
       return { res, val, editValue };

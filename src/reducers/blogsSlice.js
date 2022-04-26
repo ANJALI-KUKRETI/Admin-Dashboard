@@ -95,7 +95,6 @@ export const getPrevBlogs = createAsyncThunk(
   "blogs/getPrev",
   async (first, { rejectWithValue, dispatch }) => {
     try {
-      console.log(first.data());
       const init = query(
         collection(db, "Blogs"),
         orderBy("createdAt", "desc"),
@@ -134,7 +133,7 @@ export const editBlog = createAsyncThunk(
         content: data.content,
         titleImage: data.titleImage,
       });
-      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"));
+      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"),limit(2));
       const res = await getDocs(init);
       console.log(res);
       return { res, data };
