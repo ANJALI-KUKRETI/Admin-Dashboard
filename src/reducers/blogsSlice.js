@@ -14,6 +14,11 @@ import {
   updateDoc,
   orderBy,
   query,
+  where,
+  startAfter,
+  endBefore,
+  limitToLast,
+  limit,
 } from "firebase/firestore";
 
 export const addBlogs = createAsyncThunk(
@@ -39,10 +44,70 @@ export const addBlogs = createAsyncThunk(
 );
 export const getPreStoredBlogs = createAsyncThunk(
   "blogs/preStoredBlogs",
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, dispatch }) => {
     try {
-      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"));
+      const init = query(
+        collection(db, "Blogs"),
+        orderBy("createdAt", "desc"),
+        limit(2)
+      );
       const res = await getDocs(init);
+      const initForLength = query(
+        collection(db, "Blogs"),
+        orderBy("createdAt", "desc")
+      );
+      const resL = await getDocs(initForLength);
+      const temp = resL.docs.map((d) => d.data());
+      dispatch(setLength(temp.length));
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      return res;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+
+export const getNextBlogs = createAsyncThunk(
+  "blogs/getNext",
+  async (last, { rejectWithValue, dispatch }) => {
+    try {
+      const init = query(
+        collection(db, "Blogs"),
+        orderBy("createdAt", "desc"),
+        startAfter(last),
+        limit(2)
+      );
+      const res = await getDocs(init);
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      return res;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+export const getPrevBlogs = createAsyncThunk(
+  "blogs/getPrev",
+  async (first, { rejectWithValue, dispatch }) => {
+    try {
+      console.log(first.data());
+      const init = query(
+        collection(db, "Blogs"),
+        orderBy("createdAt", "desc"),
+        endBefore(first),
+        limitToLast(3)
+      );
+      const res = await getDocs(init);
+
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
       return res;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -83,11 +148,15 @@ export const filterBlog = createAsyncThunk(
   "blogs/filterBlog",
   async (filters, { rejectWithValue }) => {
     try {
-      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"));
+      const init = query(
+        collection(db, "Blogs"),
+        where("category", "in", filters),
+        limit(2)
+      );
       const preBlogs = await getDocs(init);
       const temp = preBlogs.docs.map((d) => d.data());
-      const t = temp.filter((ini) => filters.includes(ini.category));
-      return t;
+      console.log(temp);
+      return temp;
     } catch (err) {
       return rejectWithValue(err.message);
     }
@@ -98,13 +167,26 @@ const initialState = {
   blogs: [],
   initialBlogs: [],
   status: "loading",
+  last: null,
+  first: null,
+  length: 0,
   error: null,
 };
 
 const blogsSlice = createSlice({
   name: "blogs",
   initialState,
-  reducers: {},
+  reducers: {
+    setLastVisible: (state, action) => {
+      state.last = action.payload;
+    },
+    setFirstVisible: (state, action) => {
+      state.first = action.payload;
+    },
+    setLength: (state, action) => {
+      state.length = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       .addCase(addBlogs.fulfilled, (state, { payload }) => {
@@ -155,8 +237,16 @@ const blogsSlice = createSlice({
       })
       .addCase(filterBlog.fulfilled, (state, { payload }) => {
         state.initialBlogs = payload;
+      })
+      .addCase(getNextBlogs.fulfilled, (state, { payload }) => {
+        state.initialBlogs = payload.docs.map((d) => d.data());
+      })
+      .addCase(getPrevBlogs.fulfilled, (state, { payload }) => {
+        state.initialBlogs = payload.docs.map((d) => d.data());
       });
   },
 });
 
+export const { setLastVisible, setFirstVisible, setLength } =
+  blogsSlice.actions;
 export default blogsSlice.reducer;

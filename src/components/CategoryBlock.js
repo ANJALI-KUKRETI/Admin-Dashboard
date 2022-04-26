@@ -1,15 +1,23 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { showModal, showEditModal } from "../reducers/modalSlice";
 import { v4 as uuidv4 } from "uuid";
 import "./CategoryBlock.css";
-import { getPreStoredCategories } from "../reducers/categorySlice";
+import {
+  getNext,
+  getPreStoredCategories,
+  getPrev,
+} from "../reducers/categorySlice";
 import addButton from "../assets/Frame 268.png";
 
 const CategoryBlock = () => {
+  const [page, setPage] = useState(1);
   const initials = useSelector((state) => state.categories.initials);
   const status = useSelector((state) => state.categories.status);
   const error = useSelector((state) => state.categories.error);
+  const last = useSelector((state) => state.categories.last);
+  const first = useSelector((state) => state.categories.first);
+  const length = useSelector((state) => state.categories.length);
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getPreStoredCategories());
@@ -18,9 +26,22 @@ const CategoryBlock = () => {
   const showModalHandler = () => {
     dispatch(showModal());
   };
+
+
   const showEditModalHandler = (initial) => {
     dispatch(showEditModal(initial));
   };
+  const moveNextHandler = (e) => {
+    e.preventDefault();
+    dispatch(getNext(last));
+    setPage(page + 1);
+  };
+  const movePrevHandler = (e) => {
+    e.preventDefault();
+    setPage(page - 1);
+    dispatch(getPrev(first));
+  };
+  // console.log(page);
   return (
     <div className="block">
       <div className="addCategory">
@@ -53,6 +74,14 @@ const CategoryBlock = () => {
                 </div>
               </div>
             ))}
+        </div>
+      </div>
+      <div className="pageBtns">
+        <div>{page > 1 && <button onClick={movePrevHandler}>Prev</button>}</div>
+        <div>
+          {length / (10 * page) > 1 && (
+            <button onClick={moveNextHandler}>Next</button>
+          )}
         </div>
       </div>
     </div>

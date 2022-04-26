@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import cross from "../assets/Vector.png";
 import Modal from "./Modal";
 import { useForm } from "react-hook-form";
@@ -6,6 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { closeFilterModal } from "../reducers/modalSlice";
 import "./FilterModal.css";
 import { filterBlog } from "../reducers/blogsSlice";
+import { getAllPreStoredCategories } from "../reducers/categorySlice";
 
 // const schema = yup
 //   .object()
@@ -23,16 +24,19 @@ const FilterModal = () => {
     // watch,
   } = useForm();
 
+  useEffect(() => {
+    dispatch(getAllPreStoredCategories());
+  }, [dispatch]);
+  const { allInitials: categories } = useSelector((state) => state.categories);
+
   // const selectAll = watch("selectAll");
   // console.log(selectAll);
 
   const submitFormHandler = (data) => {
-    console.log(data);
-    console.log(data.categoryN);
     dispatch(filterBlog(data.categoryN));
     dispatch(closeFilterModal());
   };
-  const categories = useSelector((state) => state.categories.initials);
+
   return (
     <Modal>
       <div className="cross" onClick={() => dispatch(closeFilterModal())}>

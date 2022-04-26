@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import addBlog from "../assets/AddBlog.png";
 import { useDispatch, useSelector } from "react-redux";
 import Filter from "../assets/FIlter.png";
@@ -9,13 +9,22 @@ import {
   showFilterModal,
 } from "../reducers/modalSlice";
 import "./BlogsBlock.css";
-import { deleteBlog, getPreStoredBlogs } from "../reducers/blogsSlice";
+import {
+  deleteBlog,
+  getNextBlogs,
+  getPreStoredBlogs,
+  getPrevBlogs,
+} from "../reducers/blogsSlice";
 
 const BlogsBlock = () => {
+  const [page, setPage] = useState(1);
   const dispatch = useDispatch();
   const initials = useSelector((state) => state.blogs.initialBlogs);
   const status = useSelector((state) => state.blogs.status);
-  const error = useSelector((state) => state.categories.error);
+  const error = useSelector((state) => state.blogs.error);
+  const last = useSelector((state) => state.blogs.last);
+  const first = useSelector((state) => state.blogs.first);
+  const length = useSelector((state) => state.blogs.length);
   const showModalHandler = () => {
     dispatch(showBlogModal());
   };
@@ -38,6 +47,16 @@ const BlogsBlock = () => {
     return string?.length > n ? string.substr(0, n - 1) + "..." : string;
   }
 
+  const moveNextHandler = (e) => {
+    e.preventDefault();
+    dispatch(getNextBlogs(last));
+    setPage(page + 1);
+  };
+  const movePrevHandler = (e) => {
+    e.preventDefault();
+    setPage(page - 1);
+    dispatch(getPrevBlogs(first));
+  };
   return (
     <div className="block">
       <div className="addBlogs">
@@ -106,6 +125,16 @@ const BlogsBlock = () => {
                 </div>
               </div>
             ))}
+        </div>
+        <div className="pageBtns">
+          <div>
+            {page > 1 && <button onClick={movePrevHandler}>Prev</button>}
+          </div>
+          <div>
+            {length / (2 * page) > 1 && (
+              <button onClick={moveNextHandler}>Next</button>
+            )}
+          </div>
         </div>
       </div>
     </div>

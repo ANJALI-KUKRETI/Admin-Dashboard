@@ -18,6 +18,10 @@ import { serverTimestamp } from "firebase/firestore";
 import { storage } from "../firebase";
 
 import "./BlogForm.css";
+import {
+  getAllPreStoredCategories,
+  getPreStoredCategories,
+} from "../reducers/categorySlice";
 
 const schema = yup
   .object()
@@ -38,7 +42,10 @@ const BlogForm = () => {
   const [imgVal, setImgVal] = useState("");
   const [prog, setProg] = useState("");
 
-  const categories = useSelector((state) => state.categories.initials);
+  useEffect(() => {
+    dispatch(getAllPreStoredCategories());
+  }, [dispatch]);
+  const { allInitials: categories } = useSelector((state) => state.categories);
 
   const val = useSelector((state) => state.modal.blogValue);
   const type = useSelector((state) => state.modal.type);

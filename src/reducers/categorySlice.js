@@ -14,6 +14,10 @@ import {
   updateDoc,
   orderBy,
   query,
+  limit,
+  startAfter,
+  endBefore,
+  limitToLast,
 } from "firebase/firestore";
 
 export const addCategory = createAsyncThunk(
@@ -54,6 +58,79 @@ export const editCategory = createAsyncThunk(
 );
 export const getPreStoredCategories = createAsyncThunk(
   "categories/preStoredCategories",
+  async (_, { rejectWithValue, dispatch }) => {
+    try {
+      const init = query(
+        collection(db, "Categories"),
+        orderBy("createdAt", "desc"),
+        limit(10)
+      );
+
+      const res = await getDocs(init);
+      const initForLength = query(
+        collection(db, "Categories"),
+        orderBy("createdAt", "desc")
+      );
+      const resL = await getDocs(initForLength);
+      const temp = resL.docs.map((d) => d.data());
+      dispatch(setLength(temp.length));
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      // console.log("last", lastVisible);
+      return res;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+export const getNext = createAsyncThunk(
+  "categories/getNext",
+  async (last, { rejectWithValue, dispatch }) => {
+    try {
+      const init = query(
+        collection(db, "Categories"),
+        orderBy("createdAt", "desc"),
+        startAfter(last),
+        limit(10)
+      );
+      const res = await getDocs(init);
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      return res;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+export const getPrev = createAsyncThunk(
+  "categories/getPrev",
+  async (first, { rejectWithValue, dispatch }) => {
+    try {
+      console.log(first.data());
+      const init = query(
+        collection(db, "Categories"),
+        orderBy("createdAt", "desc"),
+        endBefore(first),
+        limitToLast(11)
+      );
+      const res = await getDocs(init);
+
+      const lastVisibleFirst = res.docs[0];
+      dispatch(setFirstVisible(lastVisibleFirst));
+      const lastVisible = res.docs[res.docs.length - 1];
+      dispatch(setLastVisible(lastVisible));
+      return res;
+    } catch (err) {
+      return rejectWithValue(err.message);
+    }
+  }
+);
+export const getAllPreStoredCategories = createAsyncThunk(
+  "categories/allPreStoredCategories",
   async (_, { rejectWithValue }) => {
     try {
       const init = query(
@@ -70,6 +147,10 @@ export const getPreStoredCategories = createAsyncThunk(
 const initialState = {
   categories: [],
   initials: [],
+  allInitials: [],
+  last: null,
+  first: null,
+  length: 0,
   status: "loading",
   error: null,
 };
@@ -77,12 +158,19 @@ const initialState = {
 const categorySlice = createSlice({
   name: "categories",
   initialState,
-  reducers: {},
+  reducers: {
+    setLastVisible: (state, action) => {
+      state.last = action.payload;
+    },
+    setFirstVisible: (state, action) => {
+      state.first = action.payload;
+    },
+    setLength: (state, action) => {
+      state.length = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
-      // .addCase(addCategory.pending, (state) => {
-      //   state.status = "loading";
-      // })
       .addCase(addCategory.fulfilled, (state, { payload }) => {
         state.categories = [payload, ...state.categories];
         state.initials = [payload, ...state.initials];
@@ -94,9 +182,6 @@ const categorySlice = createSlice({
           state.error = action.payload;
         }
       })
-      // .addCase(getPreStoredCategories.pending, (state) => {
-      //   state.status = "loading";
-      // })
       .addCase(getPreStoredCategories.fulfilled, (state, { payload }) => {
         state.initials = payload.docs.map((d) => d.data());
         state.status = "idle";
@@ -108,9 +193,17 @@ const categorySlice = createSlice({
           console.log(state.error);
         }
       })
-      // .addCase(editCategory.pending, (state) => {
-      //   state.status = "loading";
-      // })
+      .addCase(getAllPreStoredCategories.fulfilled, (state, { payload }) => {
+        state.allInitials = payload.docs.map((d) => d.data());
+        state.status = "idle";
+      })
+      .addCase(getAllPreStoredCategories.rejected, (state, action) => {
+        if (isRejectedWithValue(action)) {
+          state.status = "idle";
+          state.error = action.payload;
+          console.log(state.error);
+        }
+      })
       .addCase(editCategory.fulfilled, (state, { payload }) => {
         const temp = payload.res.docs.map((d) => d.data());
         const tmp = temp.find((tm) => tm.id === payload.val.id);
@@ -124,8 +217,16 @@ const categorySlice = createSlice({
           state.status = "idle";
           state.error = action.payload;
         }
+      })
+      .addCase(getNext.fulfilled, (state, { payload }) => {
+        state.initials = payload.docs.map((d) => d.data());
+      })
+      .addCase(getPrev.fulfilled, (state, { payload }) => {
+        state.initials = payload.docs.map((d) => d.data());
       });
   },
 });
 
+export const { setLastVisible, setFirstVisible, setLength } =
+  categorySlice.actions;
 export default categorySlice.reducer;
