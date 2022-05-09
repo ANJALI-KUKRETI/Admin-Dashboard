@@ -131,7 +131,7 @@ const BlogsBlock = () => {
             {page > 1 && <button onClick={movePrevHandler}>Prev</button>}
           </div>
           <div>
-            {length / (2 * page) > 1 && (
+            {length / (10 * page) > 1 && (
               <button onClick={moveNextHandler}>Next</button>
             )}
           </div>

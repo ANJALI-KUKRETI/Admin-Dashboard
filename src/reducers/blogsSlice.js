@@ -49,7 +49,7 @@ export const getPreStoredBlogs = createAsyncThunk(
       const init = query(
         collection(db, "Blogs"),
         orderBy("createdAt", "desc"),
-        limit(2)
+        limit(10)
       );
       const res = await getDocs(init);
       const initForLength = query(
@@ -78,7 +78,7 @@ export const getNextBlogs = createAsyncThunk(
         collection(db, "Blogs"),
         orderBy("createdAt", "desc"),
         startAfter(last),
-        limit(2)
+        limit(10)
       );
       const res = await getDocs(init);
       const lastVisible = res.docs[res.docs.length - 1];
@@ -99,7 +99,7 @@ export const getPrevBlogs = createAsyncThunk(
         collection(db, "Blogs"),
         orderBy("createdAt", "desc"),
         endBefore(first),
-        limitToLast(3)
+        limitToLast(11)
       );
       const res = await getDocs(init);
 
@@ -133,7 +133,11 @@ export const editBlog = createAsyncThunk(
         content: data.content,
         titleImage: data.titleImage,
       });
-      const init = query(collection(db, "Blogs"), orderBy("createdAt", "desc"),limit(2));
+      const init = query(
+        collection(db, "Blogs"),
+        orderBy("createdAt", "desc"),
+        limit(10)
+      );
       const res = await getDocs(init);
       console.log(res);
       return { res, data };

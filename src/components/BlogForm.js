@@ -1,27 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { closeBlogModal } from "../reducers/modalSlice";
 import { useDispatch, useSelector } from "react-redux";
-import { addBlogs, editBlog } from "../reducers/blogsSlice";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
 import cross from "../assets/Vector.png";
 import Modal from "./Modal";
-import {
-  deleteObject,
-  getDownloadURL,
-  ref,
-  uploadBytesResumable,
-} from "firebase/storage";
-import { serverTimestamp } from "firebase/firestore";
-import { storage } from "../firebase";
-
 import "./BlogForm.css";
-import {
-  getAllPreStoredCategories,
-  getPreStoredCategories,
-} from "../reducers/categorySlice";
+import { getAllPreStoredCategories } from "../reducers/categorySlice";
+import useBlogs from "../hooks/useBlogs";
 
 const schema = yup
   .object()
@@ -41,6 +29,7 @@ const BlogForm = () => {
   const [photoURL, setPhotoURL] = useState(null);
   const [imgVal, setImgVal] = useState("");
   const [prog, setProg] = useState("");
+  const { upload, deleteB, add, edit } = useBlogs();
 
   useEffect(() => {
     dispatch(getAllPreStoredCategories());
@@ -68,100 +57,39 @@ const BlogForm = () => {
     const id = uuidv4();
     if (
       type === "add"
-        ? uploadFiles({ titleImg: e.target.files[0], id })
-        : uploadFiles({ titleImg: e.target.files[0], id: val.id })
+        ? uploadFiles({
+            titleImg: e.target.files[0],
+            id,
+          })
+        : uploadFiles({
+            titleImg: e.target.files[0],
+            id: val.id,
+          })
     );
   };
 
   const uploadFiles = ({ id, titleImg }) => {
-    const storageRef = ref(storage, `/files/${id}`);
-    const uploadTask = uploadBytesResumable(storageRef, titleImg);
-    setError("titleImage", null);
-    uploadTask.on(
-      "state_changed",
-      (snapshot) => {
-        const prog = Math.round(
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        );
-        setProg(prog);
-      },
-      (err) => console.log(err),
-      async () => {
-        const url = await getDownloadURL(uploadTask.snapshot.ref);
-        setImgVal(url);
-        setPhotoURL({ url, id });
-      }
-    );
+    upload({ id, titleImg, setError, setProg, setImgVal, setPhotoURL });
   };
 
   const deleteFromStorage = (id) => {
-    console.log(id);
-    const storageRef = ref(storage, `/files/${val.id}`);
-    const sRef = ref(storage, `/files/${id}`);
-    if (type === "edit") {
-      deleteObject(storageRef)
-        .then(() => {
-          console.log("deleted");
-        })
-        .catch((error) => console.log("error occured"));
-    } else {
-      deleteObject(sRef)
-        .then(() => {
-          console.log("deleted");
-        })
-        .catch((error) => console.log("error occured"));
-    }
+    deleteB({ id, val, type });
   };
   const addBLogHandler = async (data) => {
-    let date = new Date();
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
-
-    let fullDate = `${day}/${month}/${year}`;
-    if (photoURL) {
-      const target = { ...data, titleImage: photoURL.url, date: fullDate };
-      setError("titleImage", null);
-      dispatch(
-        addBlogs({
-          data: target,
-          id: photoURL.id,
-          createdAt: serverTimestamp(),
-        })
-      );
-      dispatch(closeBlogModal());
-    } else {
-      setError("titleImage", {
-        message: "Please add title image",
-        type: "ImageNotFoundError",
-      });
-    }
+    add({ data, photoURL, setError });
   };
   useEffect(() => {
     if (type === "edit") {
       for (var key of Object.keys(val)) {
         setValue(key, val[key]);
       }
-
       setImgVal(val["titleImage"]);
       setPhotoURL({ url: val["titleImage"], id: val["id"] });
     }
-
-    return () => {};
   }, [type]);
 
-  // console.log(photoURL);
   const editBlogHandler = (data) => {
-    if (photoURL) {
-      const target = { ...data, titleImage: photoURL.url, id: val.id };
-      dispatch(editBlog(target));
-      dispatch(closeBlogModal());
-    } else {
-      setError("titleImage", {
-        message: "Please add title image",
-        type: "ImageNotFoundError",
-      });
-    }
+    edit({ data, photoURL, val, setError });
   };
 
   return (
