@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { showModal, showEditModal } from "../reducers/modalSlice";
 import { v4 as uuidv4 } from "uuid";
 import "./CategoryBlock.css";
 import {
@@ -9,6 +8,7 @@ import {
   getPrev,
 } from "../reducers/categorySlice";
 import addButton from "../assets/Frame 268.png";
+import useModal from "../hooks/useModal";
 
 const CategoryBlock = () => {
   const [page, setPage] = useState(1);
@@ -18,18 +18,18 @@ const CategoryBlock = () => {
   const last = useSelector((state) => state.categories.last);
   const first = useSelector((state) => state.categories.first);
   const length = useSelector((state) => state.categories.length);
+  const { open, openEdit } = useModal();
   const dispatch = useDispatch();
   useEffect(() => {
     dispatch(getPreStoredCategories());
   }, [dispatch]);
 
   const showModalHandler = () => {
-    dispatch(showModal());
+    open();
   };
 
-
   const showEditModalHandler = (initial) => {
-    dispatch(showEditModal(initial));
+    openEdit(initial);
   };
   const moveNextHandler = (e) => {
     e.preventDefault();

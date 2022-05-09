@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { closeBlogModal } from "../reducers/modalSlice";
 import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
@@ -10,6 +9,7 @@ import Modal from "./Modal";
 import "./BlogForm.css";
 import { getAllPreStoredCategories } from "../reducers/categorySlice";
 import useBlogs from "../hooks/useBlogs";
+import useModal from "../hooks/useModal";
 
 const schema = yup
   .object()
@@ -30,15 +30,11 @@ const BlogForm = () => {
   const [imgVal, setImgVal] = useState("");
   const [prog, setProg] = useState("");
   const { upload, deleteB, add, edit } = useBlogs();
-
-  useEffect(() => {
-    dispatch(getAllPreStoredCategories());
-  }, [dispatch]);
+  const { closeBlog } = useModal();
   const { allInitials: categories } = useSelector((state) => state.categories);
 
   const val = useSelector((state) => state.modal.blogValue);
   const type = useSelector((state) => state.modal.type);
-
   const {
     register,
     handleSubmit,
@@ -49,8 +45,22 @@ const BlogForm = () => {
     resolver: yupResolver(schema),
   });
 
+  useEffect(() => {
+    dispatch(getAllPreStoredCategories());
+  }, [dispatch]);
+
+  useEffect(() => {
+    if (type === "edit") {
+      for (var key of Object.keys(val)) {
+        setValue(key, val[key]);
+      }
+      setImgVal(val["titleImage"]);
+      setPhotoURL({ url: val["titleImage"], id: val["id"] });
+    }
+  }, [type, setValue, val]);
+
   const closeModalHandler = () => {
-    dispatch(closeBlogModal());
+    closeBlog();
   };
 
   const setImgName = (e) => {
@@ -78,15 +88,6 @@ const BlogForm = () => {
   const addBLogHandler = async (data) => {
     add({ data, photoURL, setError });
   };
-  useEffect(() => {
-    if (type === "edit") {
-      for (var key of Object.keys(val)) {
-        setValue(key, val[key]);
-      }
-      setImgVal(val["titleImage"]);
-      setPhotoURL({ url: val["titleImage"], id: val["id"] });
-    }
-  }, [type]);
 
   const editBlogHandler = (data) => {
     edit({ data, photoURL, val, setError });

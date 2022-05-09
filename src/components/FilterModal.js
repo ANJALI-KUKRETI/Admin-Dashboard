@@ -7,13 +7,7 @@ import { closeFilterModal } from "../reducers/modalSlice";
 import "./FilterModal.css";
 import { filterBlog } from "../reducers/blogsSlice";
 import { getAllPreStoredCategories } from "../reducers/categorySlice";
-
-// const schema = yup
-//   .object()
-//   .shape({
-//     categoryN: yup.mixed(),
-//   })
-//   .required();
+import useModal from "../hooks/useModal";
 
 const FilterModal = () => {
   const dispatch = useDispatch();
@@ -21,20 +15,17 @@ const FilterModal = () => {
     register,
     handleSubmit,
     formState: { errors },
-    // watch,
   } = useForm();
+  const { closeFilter } = useModal();
 
   useEffect(() => {
     dispatch(getAllPreStoredCategories());
   }, [dispatch]);
   const { allInitials: categories } = useSelector((state) => state.categories);
 
-  // const selectAll = watch("selectAll");
-  // console.log(selectAll);
-
   const submitFormHandler = (data) => {
     dispatch(filterBlog(data.categoryN));
-    dispatch(closeFilterModal());
+    closeFilter();
   };
 
   return (
@@ -67,7 +58,6 @@ const FilterModal = () => {
                   type="checkbox"
                   id="vehicle1"
                   className="check"
-                  // checked={selectAll}
                   {...register("categoryN", {
                     required: { value: true, message: "Color is required" },
                   })}
@@ -87,7 +77,7 @@ const FilterModal = () => {
             <button
               className="cancel"
               type="button"
-              onClick={() => dispatch(closeFilterModal())}
+              onClick={() => closeFilter()}
             >
               Cancel
             </button>

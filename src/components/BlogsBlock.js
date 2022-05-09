@@ -3,11 +3,6 @@ import addBlog from "../assets/AddBlog.png";
 import { useDispatch, useSelector } from "react-redux";
 import Filter from "../assets/FIlter.png";
 import { v4 as uuidv4 } from "uuid";
-import {
-  showBlogModal,
-  showEditBlogModal,
-  showFilterModal,
-} from "../reducers/modalSlice";
 import "./BlogsBlock.css";
 import {
   deleteBlog,
@@ -15,6 +10,7 @@ import {
   getPreStoredBlogs,
   getPrevBlogs,
 } from "../reducers/blogsSlice";
+import useModal from "../hooks/useModal";
 
 const BlogsBlock = () => {
   const [page, setPage] = useState(1);
@@ -25,11 +21,12 @@ const BlogsBlock = () => {
   const last = useSelector((state) => state.blogs.last);
   const first = useSelector((state) => state.blogs.first);
   const length = useSelector((state) => state.blogs.length);
+  const { openBlog, openEditBlog, openFilter } = useModal();
   const showModalHandler = () => {
-    dispatch(showBlogModal());
+    openBlog();
   };
   const showFilterModalHandler = () => {
-    dispatch(showFilterModal());
+    openFilter();
   };
   useEffect(() => {
     dispatch(getPreStoredBlogs());
@@ -40,7 +37,7 @@ const BlogsBlock = () => {
   };
 
   const showEditBlogModalHandler = (initial) => {
-    dispatch(showEditBlogModal(initial));
+    openEditBlog(initial);
   };
 
   function truncate(string, n) {
