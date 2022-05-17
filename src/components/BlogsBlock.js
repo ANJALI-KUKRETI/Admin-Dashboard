@@ -11,6 +11,7 @@ import {
   getPrevBlogs,
 } from "../reducers/blogsSlice";
 import useModal from "../hooks/useModal";
+import useBlogs from "../hooks/useBlogs";
 
 const BlogsBlock = () => {
   const [page, setPage] = useState(1);
@@ -22,6 +23,7 @@ const BlogsBlock = () => {
   const first = useSelector((state) => state.blogs.first);
   const length = useSelector((state) => state.blogs.length);
   const { openBlog, openEditBlog, openFilter } = useModal();
+  const { deleteFile } = useBlogs();
   const showModalHandler = () => {
     openBlog();
   };
@@ -33,7 +35,11 @@ const BlogsBlock = () => {
   }, [dispatch]);
 
   const deleteBlogHandler = (id) => {
+    function onError(error) {
+      console.log(error);
+    }
     dispatch(deleteBlog(id));
+    deleteFile({ fileName: id, onError });
   };
 
   const showEditBlogModalHandler = (initial) => {

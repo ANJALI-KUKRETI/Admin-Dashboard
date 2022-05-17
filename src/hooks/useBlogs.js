@@ -12,88 +12,49 @@ import { closeBlogModal } from "../reducers/modalSlice";
 
 const useBlogs = () => {
   const dispatch = useDispatch();
-  const upload = ({
-    id,
-    titleImg,
-    setError,
-    setProg,
-    setImgVal,
-    setPhotoURL,
-  }) => {
-    const storageRef = ref(storage, `/files/${id}`);
-    const uploadTask = uploadBytesResumable(storageRef, titleImg);
-    setError("titleImage", null);
+  const upload = ({ fileName, file, onError, onLoading, onSuccess }) => {
+    const storageRef = ref(storage, `/files/${fileName}`);
+    const uploadTask = uploadBytesResumable(storageRef, file);
     uploadTask.on(
       "state_changed",
       (snapshot) => {
         const prog = Math.round(
           (snapshot.bytesTransferred / snapshot.totalBytes) * 100
         );
-        setProg(prog);
+        onLoading(prog);
       },
-      (err) => console.log(err),
+      (err) => onError(err),
       async () => {
         const url = await getDownloadURL(uploadTask.snapshot.ref);
-        setImgVal(url);
-        setPhotoURL({ url, id });
+        onSuccess(url);
       }
     );
   };
-  const add = ({ data, photoURL, setError }) => {
-    let date = new Date();
-    let day = date.getDate();
-    let month = date.getMonth() + 1;
-    let year = date.getFullYear();
+  const add = ({ data, setError }) => {
+    setError("titleImage", null);
+    dispatch(
+      addBlogs({
+        data,
+        createdAt: serverTimestamp(),
+      })
+    );
+    dispatch(closeBlogModal());
+  };
 
-    let fullDate = `${day}/${month}/${year}`;
-    if (photoURL) {
-      const target = { ...data, titleImage: photoURL.url, date: fullDate };
-      setError("titleImage", null);
-      dispatch(
-        addBlogs({
-          data: target,
-          id: photoURL.id,
-          createdAt: serverTimestamp(),
-        })
-      );
-      dispatch(closeBlogModal());
-    } else {
-      setError("titleImage", {
-        message: "Please add title image",
-        type: "ImageNotFoundError",
-      });
-    }
+  const deleteFile = ({ fileName, onError }) => {
+    const storageRef = ref(storage, `/files/${fileName}`);
+    deleteObject(storageRef)
+      .then(() => {
+        console.log("deleted");
+      })
+      .catch((error) => onError(error));
   };
-  const deleteB = ({ id, val, type }) => {
-    const storageRef = ref(storage, `/files/${val.id}`);
-    const sRef = ref(storage, `/files/${id}`);
-    if (type === "edit") {
-      deleteObject(storageRef)
-        .then(() => {
-          console.log("deleted");
-        })
-        .catch((error) => console.log("error occured"));
-    } else {
-      deleteObject(sRef)
-        .then(() => {
-          console.log("deleted");
-        })
-        .catch((error) => console.log("error occured"));
-    }
+
+  const edit = ({ data }) => {
+    dispatch(editBlog(data));
+    dispatch(closeBlogModal());
   };
-  const edit = ({ data, photoURL, val, setError }) => {
-    if (photoURL) {
-      const target = { ...data, titleImage: photoURL.url, id: val.id };
-      dispatch(editBlog(target));
-      dispatch(closeBlogModal());
-    } else {
-      setError("titleImage", {
-        message: "Please add title image",
-        type: "ImageNotFoundError",
-      });
-    }
-  };
-  return { upload, deleteB, add, edit };
+  return { upload, deleteFile, add, edit };
 };
 
 export default useBlogs;

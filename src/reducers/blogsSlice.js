@@ -23,7 +23,7 @@ import {
 
 export const addBlogs = createAsyncThunk(
   "blogs/addBlogs",
-  async ({ data, id, createdAt }, { rejectWithValue }) => {
+  async ({ data, createdAt }, { rejectWithValue }) => {
     try {
       const Blog = {
         title: data.title,
@@ -31,11 +31,11 @@ export const addBlogs = createAsyncThunk(
         author: data.author,
         content: data.content,
         titleImage: data.titleImage,
-        id: id,
+        id: data.id,
         createdAt,
         date: data.date,
       };
-      await setDoc(doc(db, `Blogs/${id}`), Blog);
+      await setDoc(doc(db, `Blogs/${data.id}`), Blog);
       return Blog;
     } catch (err) {
       return rejectWithValue(err.message);
@@ -116,7 +116,9 @@ export const getPrevBlogs = createAsyncThunk(
 
 export const deleteBlog = createAsyncThunk("blogs/deleteBlog", async (id) => {
   const docRef = doc(db, "Blogs", id);
+
   await deleteDoc(docRef);
+
   return id;
 });
 

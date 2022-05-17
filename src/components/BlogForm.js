@@ -3,38 +3,31 @@ import { useDispatch, useSelector } from "react-redux";
 import { useForm } from "react-hook-form";
 import { v4 as uuidv4 } from "uuid";
 import { yupResolver } from "@hookform/resolvers/yup";
-import * as yup from "yup";
+
 import cross from "../assets/Vector.png";
 import Modal from "./Modal";
 import "./BlogForm.css";
 import { getAllPreStoredCategories } from "../reducers/categorySlice";
 import useBlogs from "../hooks/useBlogs";
 import useModal from "../hooks/useModal";
-
-const schema = yup
-  .object()
-  .shape({
-    title: yup.string().required("This field is required"),
-    category: yup.string().required("This field is required"),
-    author: yup
-      .string()
-      .matches(/^[a-zA-Z\s]*$/g, "Enter a valid Category!(must be a string)")
-      .required("This field is required"),
-    content: yup.string().min(5).required("This field is required"),
-  })
-  .required();
+import { fullDate } from "../utils/date";
+import { Schema } from "../utils/blogsSchema";
 
 const BlogForm = () => {
   const dispatch = useDispatch();
+
   const [photoURL, setPhotoURL] = useState(null);
   const [imgVal, setImgVal] = useState("");
   const [prog, setProg] = useState("");
-  const { upload, deleteB, add, edit } = useBlogs();
-  const { closeBlog } = useModal();
-  const { allInitials: categories } = useSelector((state) => state.categories);
 
+  const { upload, deleteFile, add, edit } = useBlogs();
+  const { closeBlog } = useModal();
+
+  const { allInitials: categories } = useSelector((state) => state.categories);
   const val = useSelector((state) => state.modal.blogValue);
   const type = useSelector((state) => state.modal.type);
+
+  const schema = Schema;
   const {
     register,
     handleSubmit,
@@ -79,18 +72,65 @@ const BlogForm = () => {
   };
 
   const uploadFiles = ({ id, titleImg }) => {
-    upload({ id, titleImg, setError, setProg, setImgVal, setPhotoURL });
+    function onError(err) {
+      console.log(err);
+    }
+    function onLoading(prog) {
+      setProg(prog);
+    }
+    function onSuccess(url) {
+      setImgVal(url);
+      setPhotoURL({ url, id });
+    }
+    upload({
+      fileName: id,
+      file: titleImg,
+      onError,
+      onLoading,
+      onSuccess,
+    });
+    setError("titleImage", null);
   };
 
-  const deleteFromStorage = (id) => {
-    deleteB({ id, val, type });
+  const deleteFileFromStorage = (id) => {
+    function onError(err) {
+      console.log(err);
+    }
+    if (type === "edit") {
+      deleteFile({ fileName: val.id, onError });
+    } else {
+      deleteFile({ fileName: id, onError });
+    }
   };
   const addBLogHandler = async (data) => {
-    add({ data, photoURL, setError });
+    const date = fullDate;
+    console.log(date);
+    if (photoURL) {
+      const finalData = {
+        ...data,
+        titleImage: photoURL.url,
+        date: fullDate,
+        id: photoURL.id,
+      };
+      add({ data: finalData, setError });
+    } else {
+      setError("titleImage", {
+        message: "Please add title image",
+        type: "ImageNotFoundError",
+      });
+    }
   };
 
   const editBlogHandler = (data) => {
-    edit({ data, photoURL, val, setError });
+    if (photoURL) {
+      const finalData = { ...data, titleImage: photoURL.url, id: val.id };
+      edit({ data: finalData });
+    } else {
+      setError("titleImage", {
+        message: "Please add title image",
+        type: "ImageNotFoundError",
+      });
+    }
   };
 
   return (
@@ -147,7 +187,7 @@ const BlogForm = () => {
                   onClick={() => {
                     setImgVal("");
                     setProg("");
-                    deleteFromStorage(photoURL.id);
+                    deleteFileFromStorage(photoURL.id);
                     setPhotoURL(null);
                   }}
                 >
